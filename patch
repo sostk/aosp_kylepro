@@ -4,7 +4,7 @@ COUNT=0
 CURRENT_DIR="$PWD"
 PD="device/samsung/kyleprods/patches"
 PATCHES=(
-'build				build.patch'
+'build				build.diff'
 'external/icu                   external_icu.diff'
 'external/tinyalsa              external_tinyalsa.diff'
 'frameworks/av			frameworks_av.diff'
