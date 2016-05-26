@@ -7,6 +7,9 @@ PRODUCT_AAPT_PREF_CONFIG := hdpi
 
 DEVICE_PACKAGE_OVERLAYS += device/samsung/kyleprods/overlay
 
+# Boot animation
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/bootanimation/bootanimation.zip:system/media/bootanimation.zip
 # Init files
 PRODUCT_COPY_FILES += \
     device/samsung/kyleprods/rootdir/fstab.hawaii_ss_kyleprods:root/fstab.hawaii_ss_kyleprods \
