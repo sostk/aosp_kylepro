@@ -1,0 +1,74 @@
+diff --git a/libs/binder/Parcel.cpp b/libs/binder/Parcel.cpp
+index 87ce5d0..d304fe8 100644
+--- a/libs/binder/Parcel.cpp
++++ b/libs/binder/Parcel.cpp
+@@ -498,6 +498,12 @@ bool Parcel::hasFileDescriptors() const
+     return mHasFds;
+ }
+ 
++extern "C" status_t _ZN7android6Parcel5writeERKNS0_26FlattenableHelperInterfaceE(void *parcel, void *val);
++
++extern "C" status_t _ZN7android6Parcel5writeERKNS_11FlattenableE(void *parcel, void *val) {
++    return _ZN7android6Parcel5writeERKNS0_26FlattenableHelperInterfaceE(parcel, val);
++}
++
+ // Write RPC headers.  (previously just the interface token)
+ status_t Parcel::writeInterfaceToken(const String16& interface)
+ {
+@@ -960,6 +966,12 @@ void Parcel::remove(size_t /*start*/, size_t /*amt*/)
+     LOG_ALWAYS_FATAL("Parcel::remove() not yet implemented!");
+ }
+ 
++extern "C" status_t _ZNK7android6Parcel4readERNS0_26FlattenableHelperInterfaceE(void *parcel, void *val);
++
++extern "C" status_t _ZNK7android6Parcel4readERNS_11FlattenableE(void *parcel, void *val) {
++    return _ZNK7android6Parcel4readERNS0_26FlattenableHelperInterfaceE(parcel, val);
++}
++
+ status_t Parcel::read(void* outData, size_t len) const
+ {
+     if ((mDataPos+PAD_SIZE(len)) >= mDataPos && (mDataPos+PAD_SIZE(len)) <= mDataSize
+diff --git a/services/surfaceflinger/DisplayHardware/HWComposer.cpp b/services/surfaceflinger/DisplayHardware/HWComposer.cpp
+index edfed49..3ed049b 100644
+--- a/services/surfaceflinger/DisplayHardware/HWComposer.cpp
++++ b/services/surfaceflinger/DisplayHardware/HWComposer.cpp
+@@ -946,13 +946,18 @@ public:
+         //getLayer()->compositionType = HWC_FRAMEBUFFER;
+     }
+     virtual void setPlaneAlpha(uint8_t alpha) {
++// CAPRI_HWC does not respect planeAlpha despite being v1.2
++#ifndef HAWAII_HWC
+         if (hwcHasApiVersion(mHwc, HWC_DEVICE_API_VERSION_1_2)) {
+             getLayer()->planeAlpha = alpha;
+         } else {
++#endif
+             if (alpha < 0xFF) {
+                 getLayer()->flags |= HWC_SKIP_LAYER;
+             }
++#ifndef HAWAII_HWC
+         }
++#endif
+     }
+     virtual void setDefaultState() {
+         hwc_layer_1_t* const l = getLayer();
+diff --git a/services/surfaceflinger/Layer.cpp b/services/surfaceflinger/Layer.cpp
+index 5e3dfab..3e9f345 100644
+--- a/services/surfaceflinger/Layer.cpp
++++ b/services/surfaceflinger/Layer.cpp
+@@ -1323,6 +1323,8 @@ uint32_t Layer::getEffectiveUsage(uint32_t usage) const
+ 
+ void Layer::updateTransformHint(const sp<const DisplayDevice>& hw) const {
+     uint32_t orientation = 0;
++// CAPRI_HWC has display problem in landscape mode when transform is used
++#ifndef HAWAII_HWC
+     if (!mFlinger->mDebugDisableTransformHint) {
+         // The transform hint is used to improve performance, but we can
+         // only have a single transform hint, it cannot
+@@ -1333,6 +1335,7 @@ void Layer::updateTransformHint(const sp<const DisplayDevice>& hw) const {
+             orientation = 0;
+         }
+     }
++#endif
+     mSurfaceFlingerConsumer->setTransformHint(orientation);
+ }
+ 

@@ -1,0 +1,140 @@
+diff --git a/healthd/healthd_mode_charger.cpp b/healthd/healthd_mode_charger.cpp
+index 5039649..4472327 100644
+--- a/healthd/healthd_mode_charger.cpp
++++ b/healthd/healthd_mode_charger.cpp
+@@ -547,6 +547,7 @@ static void process_key(struct charger *charger, int code, int64_t now)
+ static void handle_input_state(struct charger *charger, int64_t now)
+ {
+     process_key(charger, KEY_POWER, now);
++    process_key(charger, KEY_HOME, now);
+ 
+     if (charger->next_key_check != -1 && now > charger->next_key_check)
+         charger->next_key_check = -1;
+diff --git a/init/Android.mk b/init/Android.mk
+index 228e645..dab02ce 100644
+--- a/init/Android.mk
++++ b/init/Android.mk
+@@ -33,6 +33,16 @@ endif
+ 
+ LOCAL_MODULE:= init
+ 
++SYSTEM_CORE_INIT_DEFINES := BOARD_CHARGING_MODE_BOOTING_LPM \
++    BOARD_CHARGING_CMDLINE_NAME \
++    BOARD_CHARGING_CMDLINE_VALUE
++
++$(foreach system_core_init_define,$(SYSTEM_CORE_INIT_DEFINES), \
++  $(if $($(system_core_init_define)), \
++    $(eval LOCAL_CFLAGS += -D$(system_core_init_define)=\"$($(system_core_init_define))\") \
++  ) \
++  )
++
+ LOCAL_FORCE_STATIC_EXECUTABLE := true
+ LOCAL_MODULE_PATH := $(TARGET_ROOT_OUT)
+ LOCAL_UNSTRIPPED_PATH := $(TARGET_ROOT_OUT_UNSTRIPPED)
+diff --git a/init/init.c b/init/init.c
+index bd1db7a..d8e1c98 100644
+--- a/init/init.c
++++ b/init/init.c
+@@ -958,6 +958,25 @@ static int audit_callback(void *data, security_class_t cls __attribute__((unused
+     return 0;
+ }
+ 
++static int charging_mode_booting(void)
++{
++#ifndef BOARD_CHARGING_MODE_BOOTING_LPM
++    return 0;
++#else
++    int f;
++    char cmb;
++    f = open(BOARD_CHARGING_MODE_BOOTING_LPM, O_RDONLY);
++    if (f < 0)
++        return 0;
++
++    if (1 != read(f, (void *)&cmb,1))
++        return 0;
++
++    close(f);
++    return ('1' == cmb);
++#endif
++}
++
+ int log_callback(int type, const char *fmt, ...)
+ {
+     int level;
+@@ -1068,7 +1087,7 @@ int main(int argc, char **argv)
+     restorecon("/dev/__properties__");
+     restorecon_recursive("/sys");
+ 
+-    is_charger = !strcmp(bootmode, "charger");
++    is_charger = !strcmp(bootmode, "charger") || charging_mode_booting();
+ 
+     INFO("property init\n");
+     property_load_boot_defaults();
+@@ -1093,7 +1112,6 @@ int main(int argc, char **argv)
+     queue_builtin_action(property_service_init_action, "property_service_init");
+     queue_builtin_action(signal_init_action, "signal_init");
+ 
+-    /* Don't mount filesystems or start core system services if in charger mode. */
+     if (is_charger) {
+         action_for_each_trigger("charger", action_add_queue_tail);
+     } else {
+diff --git a/init/ueventd.c b/init/ueventd.c
+index 833e4fd..34cdf1c 100644
+--- a/init/ueventd.c
++++ b/init/ueventd.c
+@@ -52,7 +52,7 @@ int ueventd_main(int argc, char **argv)
+ {
+     struct pollfd ufd;
+     int nr;
+-    char tmp[32];
++    char tmp[64];
+ 
+     /*
+      * init sets the umask to 077 for forked processes. We need to
+diff --git a/libnetutils/ifc_utils.c b/libnetutils/ifc_utils.c
+index 913f51e..f7697a6 100644
+--- a/libnetutils/ifc_utils.c
++++ b/libnetutils/ifc_utils.c
+@@ -640,6 +640,42 @@ int ifc_reset_connections(const char *ifname, const int reset_mask)
+ #endif
+ }
+ 
++/* bcm stuff */
++/* Added both functions as both are needed for Broadcom RILD */
++int ifc_get_mtu(const char *name, int *mtuSz)
++{
++    struct ifreq ifr;
++    ifc_init_ifr(name, &ifr);
++
++    if (mtuSz != NULL) {
++        if(ioctl(ifc_ctl_sock, SIOCGIFMTU, &ifr) < 0) {
++            *mtuSz = 0;
++            return -2;
++        } else {
++            *mtuSz = ifr.ifr_mtu;
++            return 0;
++        }
++    }
++
++    return -1;
++}
++
++// Required for Broadcom RILD
++int ifc_set_mtu(const char *name, int mtuSz)
++{
++    struct ifreq ifr;
++    int ret;
++    ifc_init_ifr(name, &ifr);
++    ifr.ifr_mtu = mtuSz;
++
++    ret = ioctl(ifc_ctl_sock, SIOCSIFMTU, &ifr);
++    if (ret < 0) {
++        printerr("ifc_set_mtu: SIOCSIFMTU failed: %d\n", ret);
++    }
++
++    return ret;
++}
++
+ /*
+  * Removes the default route for the named interface.
+  */
