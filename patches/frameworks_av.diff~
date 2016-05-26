@@ -6560,7 +6560,7 @@ index 0000000..92139ef
 +#include <OMX_AudioExt.h>
 +#include <OMX_IndexExt.h>
 +
-+//#include <OMX_FFMPEG_Extn.h>
++#include <OMX_FFMPEG_Extn.h>
 +
 +namespace android {
 +
