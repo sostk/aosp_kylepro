@@ -4,16 +4,16 @@ COUNT=0
 CURRENT_DIR="$PWD"
 PD="device/samsung/kyleprods/patches"
 PATCHES=(
-'build				build.patch'
-'external/icu                   external_icu.patch'
-'external/tinyalsa              external_tinyalsa.patch'
-'frameworks/av			frameworks_av.patch'
-'frameworks/base		frameworks_base.patch'
-'frameworks/native		frameworks_native.patch'
-'frameworks/opt/net/wifi	frameworks_opt_net_wifi.patch'
-'frameworks/opt/telephony	frameworks_opt_telephony.patch'
-'hardware/broadcom/libbt	hardware_broadcom_libbt.patch'
-'system/core			system_core.patch'
+'build				build.diff'
+'external/icu                   external_icu.diff'
+'external/tinyalsa              external_tinyalsa.diff'
+'frameworks/av			frameworks_av.diff'
+'frameworks/base		frameworks_base.diff'
+'frameworks/native		frameworks_native.diff'
+'frameworks/opt/net/wifi	frameworks_opt_net_wifi.diff'
+'frameworks/opt/telephony	frameworks_opt_telephony.diff'
+'hardware/broadcom/libbt	hardware_broadcom_libbt.diff'
+'system/core			system_core.diff'
 )
 
 while [ "x${PATCHES[COUNT]}" != "x" ]
@@ -24,7 +24,7 @@ do
 
 	cd "$FOLDER"
 	echo Patching "$FOLDER" ...
-	git apply --whitespace=fix "$CURRENT_DIR/$PD/$PATCH"
+	patch -p1 < "$CURRENT_DIR/$PD/$PATCH"
 	cd "$CURRENT_DIR"
 
 	COUNT=$(($COUNT + 1))
