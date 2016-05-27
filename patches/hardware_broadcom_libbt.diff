@@ -1,50 +1,30 @@
-diff --git a/include/vnd_generic.txt b/include/vnd_generic.txt
-index 18964f2..006b570 100644
---- a/include/vnd_generic.txt
-+++ b/include/vnd_generic.txt
-@@ -6,3 +6,4 @@ BTVND_DBG = FALSE
- BTHW_DBG = TRUE
- VNDUSERIAL_DBG = FALSE
- UPIO_DBG = FALSE
-+UART_FORCE_TWO_STOPBITS = FALSE
+From 35aa5900d02c52931aaf4d926ce09ad57712d433 Mon Sep 17 00:00:00 2001
+From: Pawit Pornkitprasan <p.pawit@gmail.com>
+Date: Tue, 10 Dec 2013 20:09:12 +0700
+Subject: [PATCH 1/2] libbt: switch to N_BRCM_HCI line disclipline for userial
+ ioctl
+
+Change-Id: I12c297c6b26fc0cb6f0a36ed8f5d04d4d36a4092
+---
+ src/userial_vendor.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
 diff --git a/src/userial_vendor.c b/src/userial_vendor.c
-index 0f3f527..29e9a29 100644
+index 0f3f527..f4278ab 100644
 --- a/src/userial_vendor.c
 +++ b/src/userial_vendor.c
-@@ -68,6 +68,7 @@ typedef struct
- ******************************************************************************/
- 
- static vnd_userial_cb_t vnd_userial;
-+static int vnd_userial_force_2stopbits = UART_FORCE_TWO_STOPBITS;
- 
- /*****************************************************************************
- **   Helper Functions
-@@ -194,6 +195,10 @@ int userial_vendor_open(tUSERIAL_CFG *p_cfg)
-     uint8_t data_bits;
+@@ -195,6 +195,10 @@ int userial_vendor_open(tUSERIAL_CFG *p_cfg)
      uint16_t parity;
      uint8_t stop_bits;
-+    
+ 
 +#if (BT_WAKE_VIA_USERIAL_IOCTL==TRUE)
 +    int ldisc;
 +#endif
- 
++
      vnd_userial.fd = -1;
  
-@@ -228,10 +233,10 @@ int userial_vendor_open(tUSERIAL_CFG *p_cfg)
-         return -1;
-     }
- 
--    if(p_cfg->fmt & USERIAL_STOPBITS_1)
--        stop_bits = 0;
--    else if(p_cfg->fmt & USERIAL_STOPBITS_2)
-+    if(vnd_userial_force_2stopbits || (p_cfg->fmt & USERIAL_STOPBITS_2))
-         stop_bits = CSTOPB;
-+    else if(p_cfg->fmt & USERIAL_STOPBITS_1)
-+        stop_bits = 0;
-     else
-     {
-         ALOGE("userial vendor open: unsupported stop bits");
-@@ -264,6 +269,13 @@ int userial_vendor_open(tUSERIAL_CFG *p_cfg)
+     if (!userial_to_tcio_baud(p_cfg->baud, &baud))
+@@ -264,6 +268,13 @@ int userial_vendor_open(tUSERIAL_CFG *p_cfg)
      tcsetattr(vnd_userial.fd, TCSANOW, &vnd_userial.termios);
  
  #if (BT_WAKE_VIA_USERIAL_IOCTL==TRUE)
@@ -58,28 +38,22 @@ index 0f3f527..29e9a29 100644
      userial_ioctl_init_bt_wake(vnd_userial.fd);
  #endif
  
-@@ -373,3 +385,21 @@ int userial_set_port(char *p_conf_name, char *p_conf_value, int param)
-     return 0;
- }
- 
-+/*******************************************************************************
-+**
-+** Function        userial_set_force_use_2_stop_bits
-+**
-+** Description     Configure UART port name
-+**
-+** Returns         0 : Success
-+**                 Otherwise : Fail
-+**
-+*******************************************************************************/
-+int userial_set_force_use_2_stop_bits(char *p_conf_name, char *p_conf_value, int param)
-+{
-+    if (strcmp(p_conf_value, "true") == 0)
-+        vnd_userial_force_2stopbits = TRUE;
-+    else
-+        vnd_userial_force_2stopbits = FALSE;
-+    return 0;
-+}
+-- 
+2.3.5
+
+
+From f386d7477d2512bcac81314a5bb41990b22f0e38 Mon Sep 17 00:00:00 2001
+From: Steve Kondik <shade@chemlab.org>
+Date: Mon, 3 Dec 2012 02:34:56 -0800
+Subject: [PATCH 2/2] libbt: Add support for board-specific configuration
+
+ * Set with BOARD_BLUEDROID_VENDOR_CONF
+
+Change-Id: Ia657da71d0e3dad670def517fe3246556f8f6d5a
+---
+ vnd_buildcfg.mk | 4 ++++
+ 1 file changed, 4 insertions(+)
+
 diff --git a/vnd_buildcfg.mk b/vnd_buildcfg.mk
 index ad61a4c..e4f1840 100644
 --- a/vnd_buildcfg.mk
@@ -99,3 +73,5 @@ index ad61a4c..e4f1840 100644
  GEN := $(generated_sources)/vnd_buildcfg.h
  TOOL := $(TOP_DIR)external/bluetooth/bluedroid/tools/gen-buildcfg.sh
  
+-- 
+2.3.5
