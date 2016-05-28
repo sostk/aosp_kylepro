@@ -1,6 +1,6 @@
-diff -ur a/external/sepolicy/domain.te b/external/sepolicy/domain.te
---- a/external/sepolicy/domain.te	2015-04-15 01:32:10.000000000 +0545
-+++ b/external/sepolicy/domain.te	2016-05-16 21:50:20.800155827 +0545
+diff -ur a/sepolicy/domain.te b/external/sepolicy/domain.te
+--- a/sepolicy/domain.te	2015-04-15 01:32:10.000000000 +0545
++++ b/sepolicy/domain.te	2016-05-16 21:50:20.800155827 +0545
 @@ -220,7 +220,7 @@
  # init starts in kernel domain and switches to init domain via setcon in
  # the init.rc, so the setenforce occurs while still in kernel. After
