@@ -1,3 +1,4 @@
+//patch for framework av
 diff --git a/include/media/stagefright/ColorConverter.h b/include/media/stagefright/ColorConverter.h
 index 85ba920..b9a6d4a 100644
 --- a/include/media/stagefright/ColorConverter.h
