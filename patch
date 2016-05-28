@@ -8,7 +8,7 @@ PATCHES=(
 'external/sepolicy              sepolicy.diff'
 'external/icu                   external_icu.diff'
 'external/tinyalsa              external_tinyalsa.diff'
-'frameworks/av			frameworks_av.diff'
+//'frameworks/av			frameworks_av.diff'
 'frameworks/base		frameworks_base.diff'
 'frameworks/native		frameworks_native.diff'
 'frameworks/opt/net/wifi	frameworks_opt_net_wifi.diff'
