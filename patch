@@ -5,6 +5,7 @@ CURRENT_DIR="$PWD"
 PD="device/samsung/kyleprods/patches"
 PATCHES=(
 'build				build.diff'
+'packages/apps/Dialer dialer.diff'
 'external/icu                   external_icu.diff'
 'external/tinyalsa              external_tinyalsa.diff'
 'frameworks/av			frameworks_av.diff'

@@ -111,3 +111,16 @@ diff -ur a/packages/apps/Dialer/src/com/android/dialer/DialtactsActivity.java b/
       * @return True if the search UI was exited, false otherwise
       */
 Only in b/packages/apps/Dialer/src/com/android/dialer: DialtactsActivity.java~
+diff -ur a/external/sepolicy/domain.te b/external/sepolicy/domain.te
+--- a/external/sepolicy/domain.te	2015-04-15 01:32:10.000000000 +0545
++++ b/external/sepolicy/domain.te	2016-05-16 21:50:20.800155827 +0545
+@@ -220,7 +220,7 @@
+ # init starts in kernel domain and switches to init domain via setcon in
+ # the init.rc, so the setenforce occurs while still in kernel. After
+ # switching domains, there is never any need to setenforce again by init.
+-neverallow domain kernel:security setenforce;
++# neverallow domain kernel:security setenforce;
+ neverallow { domain -kernel } kernel:security setcheckreqprot;
+ 
+ # No booleans in AOSP policy, so no need to ever set them.
+Only in b/external/sepolicy: domain.te~
