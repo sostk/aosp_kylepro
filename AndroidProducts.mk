@@ -1,3 +1,3 @@
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/device_kyleprods.mk \
-    $(LOCAL_DIR)/aosp_kyleprods.mk
+    $(LOCAL_DIR)/device_kylepro.mk \
+    $(LOCAL_DIR)/aosp_kyleprp.mk
